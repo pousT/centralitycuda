@@ -9,23 +9,35 @@
 #define CPU  2
 #define GPU  4
 #define ERROR 16
+#define DIRECTED = 5
+#define UNDIRECTED = 6
 
 // parse the input arguments
 void parse(int argc, char * argv[],
            int & mode,
+           int & graph,
            char * filename[] );
 
 int main(int argc, char * argv[])
 {
    int mode = GPU;
+   int graph = UNDIRECTED;
    char * filename[3] = {NULL, NULL, NULL};
-   parse(argc, argv, mode, filename);
+   parse(argc, argv, mode, graph, filename);
 
    GraphIndexed* pGraph = new GraphIndexed();
-   if(!pGraph->Load(filename[0]))
-   {
-      return -1;
+   if(graph == UNDIRECTED) {
+     if(!pGraph->LoadUndirect(filename[0]))
+     {
+        return -1;
+     }
+   } else {
+     if(!pGraph->LoadDirect(filename[0]))
+     {
+        return -1;
+     }
    }
+
 
    printf("Initial graph and bc data on CPU\n");
    cuGraph* pCUGraph = NULL;
@@ -66,6 +78,7 @@ int main(int argc, char * argv[])
 
 void parse(int argc, char * argv[],
             int & mode,
+            int & graph,
             char * filename[])
 {
     for(int i=0; i<argc; i++)
@@ -99,6 +112,16 @@ void parse(int argc, char * argv[],
             if(i<argc)
                 filename[0] = argv[i];
         }
+        else if(strcmp(argv[i], "-d")==0 ||
+           strcmp(argv[i], "-directed")==0)
+         {
+           graph = DIRECTED;
+         }
+         else if(strcmp(argv[i], "-u")==0 ||
+            strcmp(argv[i], "-undirected")==0)
+          {
+            graph = UNDIRECTED;
+          }
         else if(strcmp(argv[i], "-help")==0 ||
            strcmp(argv[i], "--help")==0)
         {
@@ -106,7 +129,8 @@ void parse(int argc, char * argv[],
                     "options:\n"
                     "   -gpu,  -g  : running program on GPU\n"
                     "   -cpu,  -c  : running program on CPU\n"
-                    "   -e bc_accurate_file bc_approx_file: compute error of bc approximations\n"
+                    "   -d, -directed: read in file as directed graph\n"
+                    "   -u, -undirected: read in file as undirected graph\n"
                 );
             exit(0);
         }
@@ -118,7 +142,9 @@ void parse(int argc, char * argv[],
               "options:\n"
               "   -gpu,  -g  : running program on GPU\n"
               "   -cpu,  -c  : running program on CPU\n"
-              "   -e bc_accurate_file bc_approx_file: compute error of bc approximations\n"
+              "   -d, -directed: read in file as directed graph\n"
+              "   -u, -undirected: read in file as undirected graph\n"
+
             );
        exit(0);
    }
