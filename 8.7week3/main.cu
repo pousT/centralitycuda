@@ -37,6 +37,7 @@ int main(int argc, char * argv[])
         return -1;
      }
    }
+   printf("num edges: %d\n", pGraph->NumberOfEdges());
 
 
    printf("Initial graph and bc data on CPU\n");

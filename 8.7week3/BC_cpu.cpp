@@ -16,11 +16,11 @@ void initGraph(const GraphIndexed * pGraph, cuGraph *& pCUGraph)
    pCUGraph->nnode = pGraph->NumberOfNodes();
    pCUGraph->nedge = pGraph->NumberOfEdges();
 
-   pCUGraph->edge_node1 = (int*)calloc(pCUGraph->nedge*2, sizeof(int));
-   pCUGraph->edge_node2 = (int*)calloc(pCUGraph->nedge*2, sizeof(int));
+   pCUGraph->edge_node1 = (int*)calloc(pCUGraph->nedge, sizeof(int));
+   pCUGraph->edge_node2 = (int*)calloc(pCUGraph->nedge, sizeof(int));
    pCUGraph->index_list = (int*)calloc(pCUGraph->nnode+1, sizeof(int));
 #ifdef COMPUTE_EDGE_BC
-   pCUGraph->edge_id = (int*)calloc(pCUGraph->nedge*2, sizeof(int));
+   pCUGraph->edge_id = (int*)calloc(pCUGraph->nedge, sizeof(int));
    int* edge_id = pCUGraph->edge_id;
 #endif
 
@@ -85,7 +85,7 @@ void initBC(const cuGraph * pGraph, cuBC *& pBCData)
    pBCData->dependency = (float*)calloc(pBCData->nnode, sizeof(float));
    pBCData->distance = (int*)calloc(pBCData->nnode, sizeof(int));
    pBCData->nodeBC = (float*)calloc(pBCData->nnode, sizeof(float));
-   pBCData->successor  = (bool*)calloc(pBCData->nedge*2, sizeof(bool));
+   pBCData->successor  = (bool*)calloc(pBCData->nedge, sizeof(bool));
 #ifdef COMPUTE_EDGE_BC
    pBCData->edgeBC = (float*)calloc(pBCData->nedge, sizeof(float));
 #endif
@@ -116,27 +116,14 @@ void clearBC(cuBC * pBCData)
       memset(pBCData->numSPs, 0, pBCData->nnode*sizeof(int));
       memset(pBCData->dependency, 0, pBCData->nnode*sizeof(float));
       memset(pBCData->distance, 0xff, pBCData->nnode*sizeof(int));
-      memset(pBCData->successor, 0, pBCData->nedge*2*sizeof(bool));
+      memset(pBCData->successor, 0, pBCData->nedge*sizeof(bool));
       // do not clear nodeBC & edgeBC which is accumulated through iterations
    }
-}
-
-void cpuHalfBC(cuBC * pBCData)
-{
-   for(int i=0; i<pBCData->nnode; i++)
-      pBCData->nodeBC[i] *= 0.5f;
-
-#ifdef COMPUTE_EDGE_BC
-   for(int i=0; i<pBCData->nedge; i++)
-      pBCData->edgeBC[i] *= 0.5f;
-#endif
 }
 
 void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* filename)
 {
    std::ofstream of(filename);
-   of << "Version" << std::endl;
-   of << 2 << std::endl;
 #ifdef COMPUTE_EDGE_BC
    of << pBCData->nnode << " " << pBCData->nedge << std::endl;
 #else

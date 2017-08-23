@@ -21,17 +21,17 @@ void initGPUGraph(const cuGraph * pCPUGraph, cuGraph *& pGPUGraph)
    pGPUGraph->nnode = pCPUGraph->nnode;
    pGPUGraph->nedge = pCPUGraph->nedge;
 
-   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_node1), sizeof(int)*pGPUGraph->nedge*2));
-   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_node2), sizeof(int)*pGPUGraph->nedge*2));
+   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_node1), sizeof(int)*pGPUGraph->nedge));
+   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_node2), sizeof(int)*pGPUGraph->nedge));
    checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->index_list), sizeof(int)*(pGPUGraph->nnode+1)));
 
-   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_node1, pCPUGraph->edge_node1, sizeof(int)*pGPUGraph->nedge*2, cudaMemcpyHostToDevice));
-   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_node2, pCPUGraph->edge_node2, sizeof(int)*pGPUGraph->nedge*2, cudaMemcpyHostToDevice));
+   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_node1, pCPUGraph->edge_node1, sizeof(int)*pGPUGraph->nedge, cudaMemcpyHostToDevice));
+   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_node2, pCPUGraph->edge_node2, sizeof(int)*pGPUGraph->nedge, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUGraph->index_list, pCPUGraph->index_list, sizeof(int)*(pGPUGraph->nnode+1), cudaMemcpyHostToDevice));
 
 #ifdef COMPUTE_EDGE_BC
-   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_id), sizeof(int)*pGPUGraph->nedge*2));
-   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_id, pCPUGraph->edge_id, sizeof(int)*pGPUGraph->nedge*2, cudaMemcpyHostToDevice));
+   checkCudaErrors(cudaMalloc ((void **) &(pGPUGraph->edge_id), sizeof(int)*pGPUGraph->nedge));
+   checkCudaErrors(cudaMemcpy(pGPUGraph->edge_id, pCPUGraph->edge_id, sizeof(int)*pGPUGraph->nedge, cudaMemcpyHostToDevice));
 #endif
 }
 
@@ -64,7 +64,7 @@ void initGPUBC(const cuBC * pCPUBCData, cuBC *& pGPUBCData)
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->distance), sizeof(int)*pGPUBCData->nnode));
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->nodeBC), sizeof(float)*pGPUBCData->nnode));
    checkCudaErrors(cudaMemset ((void *) pGPUBCData->nodeBC, 0, sizeof(float)*pGPUBCData->nnode));
-   checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->successor), sizeof(bool)*pGPUBCData->nedge*2));
+   checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->successor), sizeof(bool)*pGPUBCData->nedge));
 #ifdef COMPUTE_EDGE_BC
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->edgeBC), sizeof(float)*pGPUBCData->nedge));
    checkCudaErrors(cudaMemset ((void *) pGPUBCData->edgeBC, 0, sizeof(float)*pGPUBCData->nedge));
@@ -95,7 +95,7 @@ void clearGPUBC(cuBC * pBCData)
       checkCudaErrors(cudaMemset ((void *) pBCData->numSPs, 0, sizeof(int)*pBCData->nnode));
       checkCudaErrors(cudaMemset ((void *) pBCData->dependency, 0, sizeof(float)*pBCData->nnode));
       checkCudaErrors(cudaMemset ((void *) pBCData->distance, 0xff, sizeof(int)*pBCData->nnode));
-      checkCudaErrors(cudaMemset ((void *) pBCData->successor, 0, sizeof(bool)*pBCData->nedge*2));
+      checkCudaErrors(cudaMemset ((void *) pBCData->successor, 0, sizeof(bool)*pBCData->nedge));
    }
 }
 
@@ -113,7 +113,7 @@ void copyBackGPUBC(const cuBC * pGPUBCData, const cuBC * pCPUBCData)
 
 void copyBCData2GPU(const cuBC * pGPUBCData, const cuBC * pCPUBCData)
 {
-   checkCudaErrors(cudaMemcpy(pGPUBCData->successor, pCPUBCData->successor, sizeof(bool)*pGPUBCData->nedge*2, cudaMemcpyHostToDevice));
+   checkCudaErrors(cudaMemcpy(pGPUBCData->successor, pCPUBCData->successor, sizeof(bool)*pGPUBCData->nedge, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->numSPs, pCPUBCData->numSPs, sizeof(int)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->distance, pCPUBCData->distance, sizeof(int)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->dependency, pCPUBCData->dependency, sizeof(float)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
@@ -122,7 +122,7 @@ void copyBCData2GPU(const cuBC * pGPUBCData, const cuBC * pCPUBCData)
 
 void copyBCData2CPU(const cuBC * pCPUBCData, const cuBC * pGPUBCData)
 {
-   checkCudaErrors(cudaMemcpy(pCPUBCData->successor, pGPUBCData->successor, sizeof(bool)*pGPUBCData->nedge*2, cudaMemcpyDeviceToHost));
+   checkCudaErrors(cudaMemcpy(pCPUBCData->successor, pGPUBCData->successor, sizeof(bool)*pGPUBCData->nedge, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->numSPs, pGPUBCData->numSPs, sizeof(int)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->distance, pGPUBCData->distance, sizeof(int)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->dependency, pGPUBCData->dependency, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
@@ -144,7 +144,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
    if(threadIdx.x==0)
    {
       bcData = const_BCDatas[blockIdx.x];
-      edge2  = (bcData.nedge<<1);
+      edge2  = (bcData.nedge);
    }
    int   * pNumSPs     = const_BCDatas[blockIdx.x].numSPs;
    float * pDependency = const_BCDatas[blockIdx.x].dependency;
