@@ -82,6 +82,9 @@ public:
 
           is.close();
     }
+    std::cout<< "Graph loaded successfully: " << filename << std::endl;
+    return true;
+  }
 public:
   int AddEdgeUndirect(int nd1, int nd2)
   {
@@ -131,7 +134,6 @@ public:
     // new edge2
     std::pair<int, int> tmp2(idx2, idx1);
     m_Edges.push_back(tmp2);
-
 
     return eg;
   }

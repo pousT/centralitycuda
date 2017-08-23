@@ -49,7 +49,6 @@ struct cuBC
 
 // cpu functions
 void initGraph(const GraphIndexed * pGraph, cuGraph *& pCUGraph);
-void initDirectGraph(const GraphDirected * pGraph, cuGraph *& pCUGraph);
 void freeGraph(cuGraph *& pGraph);
 void initBC(const cuGraph * pGraph, cuBC *& pBCData);
 void freeBC(cuBC *& pBCData);

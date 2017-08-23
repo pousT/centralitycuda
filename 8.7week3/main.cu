@@ -9,8 +9,8 @@
 #define CPU  2
 #define GPU  4
 #define ERROR 16
-#define DIRECTED = 5
-#define UNDIRECTED = 6
+#define DIRECTED  5
+#define UNDIRECTED  6
 
 // parse the input arguments
 void parse(int argc, char * argv[],
@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
         return -1;
      }
    }
-
+   printf("num edges: %d\n", pGraph->NumberOfEdges());
 
    printf("Initial graph and bc data on CPU\n");
    cuGraph* pCUGraph = NULL;
