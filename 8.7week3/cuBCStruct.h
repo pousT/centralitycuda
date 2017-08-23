@@ -58,6 +58,11 @@ void cpuSaveBC(const cuBC * pBCData, const char* filename);
 void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* filename);
 void cpuLoadBC(const cuBC * pBCData, const char* filename);
 
+int  cpuBFSOpt(const cuGraph * pGraph, cuBC * pBCData, int startNode, std::vector<int> & traversal);
+int  cpuBFSOpt(const cuGraph * pGraph, cuBC * pBCData, int startNode, std::vector<int> & traversal, int wavefrontLmt);
+void cpuUpdateBCOpt(const cuGraph * pGraph, cuBC * pBCData, int distance, const std::vector<int> & traversal);
+void cpuHalfBC(cuBC * pBCData);
+void cpuComputeBCOpt(const cuGraph * pGraph, cuBC * pBCData);
 // gpu functions
 void initGPUGraph(const cuGraph * pCPUGraph, cuGraph *& pGPUGraph);
 void freeGPUGraph(cuGraph *& pGraph);

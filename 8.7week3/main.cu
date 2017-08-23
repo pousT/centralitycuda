@@ -45,12 +45,14 @@ int main(int argc, char * argv[])
    cuBC*    pBCData  = NULL;
    initGraph(pGraph, pCUGraph);
    initBC(pCUGraph, pBCData);
-
    cuGraph* pGPUCUGraph = NULL;
    cuBC*    pGPUBCData  = NULL;
+   if(mode&GPU) {
       printf("Initial graph and bc data on GPU\n");
       initGPUGraph(pCUGraph, pGPUCUGraph);
       initGPUBC(pBCData, pGPUBCData);
+   }
+
 
    std::string bcfile(filename[0]);
    bcfile = bcfile.substr(0, bcfile.length()-5);
@@ -59,15 +61,31 @@ int main(int argc, char * argv[])
    // Start timing
    StopWatchInterface *total_timer = NULL;
     startTimer(&total_timer);
-    gpuComputeBCOpt(pGPUCUGraph, pGPUBCData);
-    bcfile.append(".gpu_bc");
+
+   switch (mode) {
+     case GPU:
+     {
+       gpuComputeBCOpt(pGPUCUGraph, pGPUBCData);
+       bcfile.append(".gpu_bc");
+     }
+     case CPU:
+     {
+       //do cpu calculation
+       cpuComputeBCOpt(pCUGraph, pBCData);
+       bcfile.append(".cpu_bc");
+     }
+   }
+
     printf("Total time: %f (ms)\n", endTimer(&total_timer));
+    if(mode&GPU) {
     copyBackGPUBC(pGPUBCData, pBCData);
+    }
     cpuSaveBC(pGraph, pBCData, bcfile.c_str());
 
-
+    if(mode&GPU) {
       freeGPUGraph(pGPUCUGraph);
       freeGPUBC(pGPUBCData);
+    }
 
    freeGraph(pCUGraph);
    freeBC(pBCData);

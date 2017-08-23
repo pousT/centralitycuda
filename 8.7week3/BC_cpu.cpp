@@ -173,3 +173,152 @@ void cpuLoadBC(const cuBC * pBCData, const char* filename)
    }
    inf.close();
 }
+
+
+//cpu calculation
+int  cpuBFSOpt(const cuGraph * pGraph, cuBC * pBCData, int startNode, std::vector<int> & traversal)
+{
+   pBCData->numSPs[startNode] = 1;
+   pBCData->distance[startNode] = 0;
+   pBCData->toprocess = 1;
+   int distance  = 0;
+   int index = 0;
+   std::deque<int> fifo;
+   fifo.push_back(startNode);
+   while(!fifo.empty())
+   {
+      int from = fifo.front();
+      fifo.pop_front();
+      traversal[index++] = from;
+
+      distance = pBCData->distance[from];
+
+      int nb_cur = pGraph->index_list[from];
+      int nb_end = pGraph->index_list[from+1];
+      for(; nb_cur<nb_end; nb_cur++)
+      {
+         int nb_id = pGraph->edge_node2[nb_cur];
+         int nb_distance = pBCData->distance[nb_id];
+
+         if(nb_distance<0)
+         {
+            pBCData->distance[nb_id] = nb_distance = distance+1;
+            fifo.push_back(nb_id);
+         }
+
+         if(nb_distance>distance)
+         {
+            pBCData->successor[nb_cur] = true;
+             pBCData->numSPs[nb_id] += pBCData->numSPs[from];
+         }
+      }
+   }
+   return distance;
+}
+
+int  cpuBFSOpt(const cuGraph * pGraph, cuBC * pBCData, int startNode, std::vector<int> & traversal, int wavefrontLmt)
+{
+   pBCData->numSPs[startNode] = 1;
+   pBCData->distance[startNode] = 0;
+   pBCData->toprocess = 1;
+   int distance  = 0;
+   int lastdist  = 0;
+   int index = 0;
+   std::deque<int> fifo;
+   fifo.push_back(startNode);
+   while(!fifo.empty())
+   {
+      int from = fifo.front();
+      fifo.pop_front();
+      traversal[index++] = from;
+
+      lastdist = distance;
+      distance = pBCData->distance[from];
+      if(distance!=lastdist && fifo.size()>wavefrontLmt)
+      {
+         traversal.resize(index-1);
+         return distance;
+      }
+
+      int nb_cur = pGraph->index_list[from];
+      int nb_end = pGraph->index_list[from+1];
+      for(; nb_cur<nb_end; nb_cur++)
+      {
+         int nb_id = pGraph->edge_node2[nb_cur];
+         int nb_distance = pBCData->distance[nb_id];
+
+         if(nb_distance<0)
+         {
+            pBCData->distance[nb_id] = nb_distance = distance+1;
+            fifo.push_back(nb_id);
+         }
+         if(nb_distance>distance)
+         {
+            pBCData->numSPs[nb_id] += pBCData->numSPs[from];
+            pBCData->successor[nb_cur] = true;
+         }
+      }
+   }
+   return distance;
+}
+
+void cpuUpdateBCOpt(const cuGraph * pGraph, cuBC * pBCData, int distance, const std::vector<int> & traversal)
+{
+   std::vector<int>::const_reverse_iterator criter;
+   for(criter=traversal.rbegin(); criter!=traversal.rend(); criter++)
+   {
+      int from = (*criter);
+
+      if(pBCData->distance[from]>=distance)
+         continue;
+
+      int nb_cur = pGraph->index_list[from];
+      int nb_end = pGraph->index_list[from+1];
+      float numSPs = pBCData->numSPs[from];
+      float dependency = 0;
+      for(; nb_cur<nb_end; nb_cur++)
+      {
+         if(pBCData->successor[nb_cur])
+         {
+            int nb_id = pGraph->edge_node2[nb_cur];
+
+            float partialDependency = numSPs / pBCData->numSPs[nb_id];
+            partialDependency *= (1.0f + pBCData->dependency[nb_id]);
+
+            dependency += partialDependency;
+            int edgeid = pGraph->edge_id[nb_cur];
+            pBCData->edgeBC[edgeid] += partialDependency;
+         }
+      }
+      pBCData->dependency[from] = dependency;
+      pBCData->nodeBC[from] += dependency;
+   }
+}
+
+void cpuHalfBC(cuBC * pBCData)
+{
+   for(int i=0; i<pBCData->nnode; i++)
+      pBCData->nodeBC[i] *= 0.5f;
+
+#ifdef COMPUTE_EDGE_BC
+   for(int i=0; i<pBCData->nedge; i++)
+      pBCData->edgeBC[i] *= 0.5f;
+#endif
+}
+
+// cpu optimized version
+void cpuComputeBCOpt(const cuGraph * pGraph, cuBC * pBCData)
+{
+   for(int i=0; i<pGraph->nnode; i++)
+   {
+      clearBC(pBCData);
+      std::vector<int> traversal;
+      traversal.resize(pGraph->nnode);
+      int distance = cpuBFSOpt(pGraph, pBCData, i, traversal);
+      float bk = pBCData->nodeBC[i];
+      cpuUpdateBCOpt(pGraph, pBCData, distance, traversal);
+      pBCData->nodeBC[i] = bk;
+   }
+
+   cpuHalfBC(pBCData);
+}
