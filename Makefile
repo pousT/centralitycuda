@@ -1,6 +1,6 @@
 NVCCFLAGS = --ptxas-options="-v" -arch sm_21
 INCLUDES  = -I. -I/usr/local/cuda/samples/common/inc -I/usr/local/cuda/include
-HEADER_FILES = graph_indexed.h cuBCStruct.h
+HEADER_FILES = graph_indexed.h cuBCStruct.h nodeCentrality.h
 SOURCE_FILES = BC_cpu.cpp timing.cu
 OBJECT_FILES = BC_cpu.o
 all: main
