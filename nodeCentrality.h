@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-class Node
+class nodeCentrality
 {
 public:
     int id;
@@ -14,7 +14,7 @@ protected:
     float bc; // btw centrality
     float inverse_cc; // inverse cc
 public:
-    node(int index) {
+    nodeCentrality(int index) {
         id = index;
         dc = 0;
         bc = 0.0;

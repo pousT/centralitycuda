@@ -144,6 +144,15 @@ void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* fi
    of.close();
 }
 
+void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData)
+{
+   const GraphIndexed::Nodes & nodes = pGraph->GetNodes();
+   for(int i=0; i<pBCData->nnode; i++)
+   {
+      pGraph->m_Nodes[i].bc = pBCData->nodeBC[i];
+   }
+}
+
 void cpuSaveBC(const cuBC * pBCData, const char* filename)
 {
    std::ofstream of(filename);

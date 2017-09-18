@@ -86,6 +86,14 @@ public:
     return true;
   }
 public:
+  int CalculateDC() {
+    int nNode = m_Nodes.size();
+    for(int i = 0; i < nNode; i++) {
+      m_Nodes[i].dc = m_NodeEdges[i].size();
+    }
+    return 0;
+  }
+
   int AddEdgeUndirect(int nd1, int nd2)
   {
     int idx1,idx2;

@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
     if(mode&GPU) {
     copyBackGPUBC(pGPUBCData, pBCData);
     }
-    cpuSaveBC(pGraph, pBCData, bcfile.c_str());
+    cpuSaveBC(pGraph, pBCData);
 
     if(mode&GPU) {
       freeGPUGraph(pGPUCUGraph);
