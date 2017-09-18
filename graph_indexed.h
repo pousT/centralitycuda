@@ -6,11 +6,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include "nodeCentrality.h"
 class GraphIndexed
 {
 public:
-  typedef std::vector<int> Nodes;
+  typedef std::vector<nodeCentrality> Nodes;
   typedef std::vector<int> NodeEdge;
   typedef std::map<int, int> NodeIndex;
   typedef std::vector<NodeEdge> NodeEdges;
@@ -98,7 +98,7 @@ public:
     {
       idx1 = (int)m_Nodes.size();
       // add node into node list
-      m_Nodes.push_back(nd1);
+      m_Nodes.push_back(nodeCentrality(nd1));
       // store node position
       m_NodeIndexes[nd1] = idx1;
       //edge list
@@ -117,7 +117,7 @@ public:
     if((iter=m_NodeIndexes.find(nd2))==m_NodeIndexes.end())
     {
       idx2 = (int)m_Nodes.size();
-      m_Nodes.push_back(nd2);
+      m_Nodes.push_back(nodeCentrality(nd2));
       m_NodeIndexes[nd2] = idx2;
       std::vector<int> tmp;
       tmp.push_back(eg);
@@ -150,7 +150,7 @@ public:
     {
       idx1 = (int)m_Nodes.size();
       // add node into node list
-      m_Nodes.push_back(nd1);
+      m_Nodes.push_back(nodeCentrality(nd1));
       // store node position
       m_NodeIndexes[nd1] = idx1;
       //edge list
@@ -168,7 +168,7 @@ public:
     if((iter=m_NodeIndexes.find(nd2))==m_NodeIndexes.end())
     {
       idx2 = (int)m_Nodes.size();
-      m_Nodes.push_back(nd2);
+      m_Nodes.push_back(nodeCentrality(nd2));
       m_NodeIndexes[nd2] = idx2;
       std::vector<int> tmp;
       m_NodeEdges.push_back(tmp);
