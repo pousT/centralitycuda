@@ -51,10 +51,9 @@ public:
           {
               AddEdgeUndirect(id1, id2); // undireced edge
           }
-
           is.close();
     }
-
+    CalculateDC();
     std::cout<< "Graph loaded successfully: " << filename << std::endl;
     return true;
   }
@@ -81,6 +80,7 @@ public:
           }
 
           is.close();
+    CalculateDC();
     }
     std::cout<< "Graph loaded successfully: " << filename << std::endl;
     return true;

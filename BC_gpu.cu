@@ -61,6 +61,8 @@ void initGPUBC(const cuBC * pCPUBCData, cuBC *& pGPUBCData)
 
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->numSPs), sizeof(int)*pGPUBCData->nnode));
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->dependency), sizeof(float)*pGPUBCData->nnode));
+   checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->inverseCC), sizeof(float)*pGPUBCData->nnode));
+   checkCudaErrors(cudaMemset ((void *) pGPUBCData->inverseCC, 0, sizeof(float)*pGPUBCData->nnode));
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->distance), sizeof(int)*pGPUBCData->nnode));
    checkCudaErrors(cudaMalloc ((void **) &(pGPUBCData->nodeBC), sizeof(float)*pGPUBCData->nnode));
    checkCudaErrors(cudaMemset ((void *) pGPUBCData->nodeBC, 0, sizeof(float)*pGPUBCData->nnode));
@@ -79,7 +81,9 @@ void freeGPUBC(cuBC *& pBCData)
       checkCudaErrors(cudaFree(pBCData->numSPs));
       checkCudaErrors(cudaFree(pBCData->distance));
       checkCudaErrors(cudaFree(pBCData->dependency));
+      checkCudaErrors(cudaFree(pBCData->inverseCC));
       checkCudaErrors(cudaFree(pBCData->nodeBC));
+
 #ifdef COMPUTE_EDGE_BC
       checkCudaErrors(cudaFree(pBCData->edgeBC));
 #endif
@@ -104,6 +108,7 @@ void copyBackGPUBC(const cuBC * pGPUBCData, const cuBC * pCPUBCData)
    if(pCPUBCData && pGPUBCData)
    {
       checkCudaErrors(cudaMemcpy(pCPUBCData->nodeBC, pGPUBCData->nodeBC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(pCPUBCData->inverseCC, pGPUBCData->inverseCC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
 #ifdef COMPUTE_EDGE_BC
       checkCudaErrors(cudaMemcpy(pCPUBCData->edgeBC, pGPUBCData->edgeBC, sizeof(float)*pGPUBCData->nedge, cudaMemcpyDeviceToHost));
 #endif
@@ -117,6 +122,7 @@ void copyBCData2GPU(const cuBC * pGPUBCData, const cuBC * pCPUBCData)
    checkCudaErrors(cudaMemcpy(pGPUBCData->numSPs, pCPUBCData->numSPs, sizeof(int)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->distance, pCPUBCData->distance, sizeof(int)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->dependency, pCPUBCData->dependency, sizeof(float)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
+   checkCudaErrors(cudaMemcpy(pGPUBCData->dependency, pCPUBCData->inverseCC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
    checkCudaErrors(cudaMemcpy(pGPUBCData->nodeBC, pCPUBCData->nodeBC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyHostToDevice));
 }
 
@@ -126,6 +132,7 @@ void copyBCData2CPU(const cuBC * pCPUBCData, const cuBC * pGPUBCData)
    checkCudaErrors(cudaMemcpy(pCPUBCData->numSPs, pGPUBCData->numSPs, sizeof(int)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->distance, pGPUBCData->distance, sizeof(int)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->dependency, pGPUBCData->dependency, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
+   checkCudaErrors(cudaMemcpy(pCPUBCData->dependency, pGPUBCData->inverseCC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
    checkCudaErrors(cudaMemcpy(pCPUBCData->nodeBC, pGPUBCData->nodeBC, sizeof(float)*pGPUBCData->nnode, cudaMemcpyDeviceToHost));
 }
 
@@ -222,8 +229,8 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
          __syncthreads();
       }
 
-
-      // compute BC
+      // compute BC and cc inverse
+      float in_cc = 0.0;
       while(distance >1)
       {
          distance--;
@@ -231,6 +238,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
          {
              if (bcData.distance[node_idx] == distance) // n_id is in frontier
              {
+                 in_cc += 1.0/(float)distance;
                  // get neighbor indices (starting index and number of indices)
                  int nb_cur = graph.index_list[node_idx];
                  int nb_end = graph.index_list[node_idx+1];
@@ -253,6 +261,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
 
          __syncthreads();
       }
+      const_BCDatas[0].inverseCC[src_idx] = in_cc;
 
    }
 }

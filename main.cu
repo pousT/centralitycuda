@@ -37,7 +37,6 @@ int main(int argc, char * argv[])
         return -1;
      }
    }
-   printf("num edges: %d\n", pGraph->NumberOfEdges());
 
 
    printf("Initial graph and bc data on CPU\n");
@@ -66,6 +65,7 @@ int main(int argc, char * argv[])
      case GPU:
      {
        gpuComputeBCOpt(pGPUCUGraph, pGPUBCData);
+       gpuComputeCCOpt(pGPUCUGraph, pGPUBCData);
        bcfile.append(".gpu_bc");
      }
      case CPU:
@@ -81,7 +81,7 @@ int main(int argc, char * argv[])
     copyBackGPUBC(pGPUBCData, pBCData);
     }
     cpuSaveBC(pGraph, pBCData);
-
+    cpuSaveBC(pGraph, bcfile);
     if(mode&GPU) {
       freeGPUGraph(pGPUCUGraph);
       freeGPUBC(pGPUBCData);

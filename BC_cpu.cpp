@@ -83,6 +83,7 @@ void initBC(const cuGraph * pGraph, cuBC *& pBCData)
 
    pBCData->numSPs = (int*)calloc(pBCData->nnode, sizeof(int));
    pBCData->dependency = (float*)calloc(pBCData->nnode, sizeof(float));
+   pBCData->inverseCC = (float*)calloc(pBCData->nnode, sizeof(float));
    pBCData->distance = (int*)calloc(pBCData->nnode, sizeof(int));
    pBCData->nodeBC = (float*)calloc(pBCData->nnode, sizeof(float));
    pBCData->successor  = (bool*)calloc(pBCData->nedge, sizeof(bool));
@@ -99,6 +100,7 @@ void freeBC(cuBC *& pBCData)
       free(pBCData->numSPs);
       free(pBCData->nodeBC);
       free(pBCData->dependency);
+      free(pBCData->inverseCC);
       free(pBCData->distance);
 #ifdef COMPUTE_EDGE_BC
       free(pBCData->edgeBC);
@@ -115,6 +117,7 @@ void clearBC(cuBC * pBCData)
       pBCData->toprocess = 0;
       memset(pBCData->numSPs, 0, pBCData->nnode*sizeof(int));
       memset(pBCData->dependency, 0, pBCData->nnode*sizeof(float));
+      memset(pBCData->inverseCC, 0, pBCData->nnode*sizeof(float));
       memset(pBCData->distance, 0xff, pBCData->nnode*sizeof(int));
       memset(pBCData->successor, 0, pBCData->nedge*sizeof(bool));
       // do not clear nodeBC & edgeBC which is accumulated through iterations
@@ -150,15 +153,16 @@ void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData)
    for(int i=0; i<pBCData->nnode; i++)
    {
       pGraph->m_Nodes[i].bc = pBCData->nodeBC[i];
+      pGraph->m_Nodes[i].cc = pBCData->inverseCC[i];
    }
 }
 
-void cpuSaveBC(const cuBC * pBCData, const char* filename)
+void cpuSaveBC(const GraphIndexed * pGraph, const char* filename)
 {
    std::ofstream of(filename);
-   for(int i=0; i<pBCData->nnode; i++)
+   for(int i=0; i<pGraph->m_Nodes.size(); i++)
    {
-      of << i << "\t" << pBCData->nodeBC[i] << std::endl;
+      of << i << "\t" << pGraph->m_Nodes[i].dc <<"\t"<<pGraph->m_Nodes[i].bc <<"\t" <<pGraph->m_Nodes[i]inverse_cc << std::endl;
    }
 #ifdef COMPUTE_EDGE_BC
    for(int i=0; i<pBCData->nedge; i++)

@@ -42,6 +42,7 @@ struct cuBC
    float * dependency;  // shortest path dependency, nnode
    float * nodeBC;      // BC computed on nodes, nnode
    bool * successor;    // bit mask for successor, nedge bits
+   float * inverseCC;
 #ifdef COMPUTE_EDGE_BC
    float * edgeBC;      // BC computed on edges, nedge
 #endif
