@@ -65,7 +65,6 @@ int main(int argc, char * argv[])
      case GPU:
      {
        gpuComputeBCOpt(pGPUCUGraph, pGPUBCData);
-       gpuComputeCCOpt(pGPUCUGraph, pGPUBCData);
        bcfile.append(".gpu_bc");
      }
      case CPU:
@@ -81,7 +80,7 @@ int main(int argc, char * argv[])
     copyBackGPUBC(pGPUBCData, pBCData);
     }
     cpuSaveBC(pGraph, pBCData);
-    cpuSaveBC(pGraph, bcfile);
+    cpuSaveBCfile(pGraph, bcfile.c_str());
     if(mode&GPU) {
       freeGPUGraph(pGPUCUGraph);
       freeGPUBC(pGPUBCData);

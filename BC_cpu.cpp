@@ -32,9 +32,9 @@ void initGraph(const GraphIndexed * pGraph, cuGraph *& pCUGraph)
    for(int i=0; i<pGraph->NumberOfNodes(); i++)
    {
 #ifdef COMPUTE_EDGE_BC
-      GraphIndexed::Nodes neighbors = pGraph->GetNodes(i);
+      GraphIndexed::NodeIds neighbors = pGraph->GetNodes(i);
       GraphIndexed::NodeEdge edges  = pGraph->GetEdges(i);
-      GraphIndexed::Nodes::iterator iter1 = neighbors.begin();
+      GraphIndexed::NodeIds::iterator iter1 = neighbors.begin();
       GraphIndexed::NodeEdge::iterator iter2 = edges.begin();
       for(; iter1!=neighbors.end(); iter1++, iter2++)
       {
@@ -136,7 +136,7 @@ void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* fi
    const GraphIndexed::Nodes & nodes = pGraph->GetNodes();
    for(int i=0; i<pBCData->nnode; i++)
    {
-      of << nodes[i] << "\t" << pBCData->nodeBC[i] << std::endl;
+      of << nodes[i].id << "\t" << pBCData->nodeBC[i] << std::endl;
    }
 #ifdef COMPUTE_EDGE_BC
    for(int i=0; i<pBCData->nedge; i++)
@@ -147,29 +147,25 @@ void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* fi
    of.close();
 }
 
-void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData)
+void cpuSaveBC(GraphIndexed * pGraph, const cuBC * pBCData)
 {
    const GraphIndexed::Nodes & nodes = pGraph->GetNodes();
    for(int i=0; i<pBCData->nnode; i++)
    {
-      pGraph->m_Nodes[i].bc = pBCData->nodeBC[i];
-      pGraph->m_Nodes[i].cc = pBCData->inverseCC[i];
+      pGraph->setBC(i, pBCData->nodeBC[i]);
+      pGraph->setInvCC(i, pBCData->inverseCC[i]);
    }
 }
 
-void cpuSaveBC(const GraphIndexed * pGraph, const char* filename)
+void cpuSaveBCfile(const GraphIndexed * pGraph, const char* filename)
 {
    std::ofstream of(filename);
-   for(int i=0; i<pGraph->m_Nodes.size(); i++)
+  const GraphIndexed::Nodes & nodes = pGraph->GetNodes();
+   for(int i=0; i<nodes.size(); i++)
    {
-      of << i << "\t" << pGraph->m_Nodes[i].dc <<"\t"<<pGraph->m_Nodes[i].bc <<"\t" <<pGraph->m_Nodes[i]inverse_cc << std::endl;
+      of << nodes[i].id << "\t" << nodes[i].dc <<"\t"<<nodes[i].bc <<"\t" <<nodes[i].inverse_cc << std::endl;
    }
-#ifdef COMPUTE_EDGE_BC
-   for(int i=0; i<pBCData->nedge; i++)
-   {
-      of << i << "\t" << pBCData->edgeBC[i] << std::endl;
-   }
-#endif
+
    of.close();
 }
 

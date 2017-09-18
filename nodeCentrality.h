@@ -9,7 +9,6 @@ class nodeCentrality
 {
 public:
     int id;
-protected:
     int dc; //degree centrality
     float bc; // btw centrality
     float inverse_cc; // inverse cc

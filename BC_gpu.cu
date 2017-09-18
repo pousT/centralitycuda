@@ -230,7 +230,8 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
       }
 
       // compute BC and cc inverse
-      float in_cc = 0.0;
+      float in_cc = 0.0f;
+
       while(distance >1)
       {
          distance--;
@@ -261,7 +262,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
 
          __syncthreads();
       }
-      const_BCDatas[0].inverseCC[src_idx] = in_cc;
+      const_BCDatas[0].inverseCC[src_idx] += in_cc;
 
    }
 }

@@ -56,7 +56,8 @@ void freeBC(cuBC *& pBCData);
 void clearBC(cuBC * pBCData);
 
 void cpuSaveBC(const cuBC * pBCData, const char* filename);
-void cpuSaveBC(const GraphIndexed * pGraph, const cuBC * pBCData, const char* filename);
+void cpuSaveBC(GraphIndexed * pGraph, const cuBC * pBCData);
+void cpuSaveBCfile(const GraphIndexed * pGraph, const char* filename);
 void cpuLoadBC(const cuBC * pBCData, const char* filename);
 
 int  cpuBFSOpt(const cuGraph * pGraph, cuBC * pBCData, int startNode, std::vector<int> & traversal);

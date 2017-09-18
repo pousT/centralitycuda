@@ -11,6 +11,7 @@ class GraphIndexed
 {
 public:
   typedef std::vector<nodeCentrality> Nodes;
+  typedef std::vector<int> NodeIds;
   typedef std::vector<int> NodeEdge;
   typedef std::map<int, int> NodeIndex;
   typedef std::vector<NodeEdge> NodeEdges;
@@ -212,11 +213,11 @@ public:
   const NodeEdge & GetEdges(int n)const
   { return m_NodeEdges[n]; }
 
-  virtual Nodes  GetNodes(int n)
+  virtual NodeIds  GetNodes(int n)
   {
     const NodeEdge & nes = GetEdges(n);
     NodeEdge::const_iterator iter;
-    Nodes nds;
+    NodeIds nds;
     for(iter = nes.begin(); iter!=nes.end(); iter++ )
     {
       int nd2 = m_Edges[(*iter)].second;
@@ -225,11 +226,11 @@ public:
     return nds;
   }
   //given id of a node, return its neighbours
-  Nodes  GetNodes(int n)const
+  NodeIds  GetNodes(int n)const
   {
     const NodeEdge & nes = GetEdges(n);
     NodeEdge::const_iterator iter;
-    Nodes nds;
+    NodeIds nds;
     for(iter = nes.begin(); iter!=nes.end(); iter++ )
     {
       int nd2 = m_Edges[(*iter)].second;
@@ -249,6 +250,15 @@ public:
         return (*iter);
     }
     return -1;
+  }
+
+  int setBC(int id, float bc){
+    m_Nodes[id].bc = bc;
+    return 0;
+  }
+  int setInvCC(int id, float icc) {
+    m_Nodes[id].inverse_cc = icc;
+    return 0;
   }
 };
 
