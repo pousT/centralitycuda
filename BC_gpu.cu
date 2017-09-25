@@ -238,7 +238,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
          {
              if (bcData.distance[node_idx] == distance) // n_id is in frontier
              {
-                 in_cc += 1.0/(float)distance;
+                 in_cc += 1.0f/distance;
                  // get neighbor indices (starting index and number of indices)
                  int nb_cur = graph.index_list[node_idx];
                  int nb_end = graph.index_list[node_idx+1];
@@ -256,12 +256,12 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
                  }
                  bcData.dependency[node_idx] = dependency;
                  bcData.nodeBC[node_idx] += dependency;
+                 bcData.inverseCC[node_idx] += in_cc;
              }
          }
 
          __syncthreads();
       }
-      const_BCDatas[0].inverseCC[src_idx] += in_cc;
 
    }
 }
@@ -315,6 +315,53 @@ __global__ void cuda_sumBC_block()
    }
 }
 
+
+__global__ void cuda_sumCC_block()
+{
+   __shared__ cuBC  bcData[NUM_BLOCKS];
+   if(threadIdx.x<NUM_BLOCKS)
+   {
+      bcData[threadIdx.x] = const_BCDatas[threadIdx.x];
+   }
+
+   __syncthreads();
+
+   int node_idx = threadIdx.x + blockIdx.x * blockDim.x;
+   if(node_idx<bcData[0].nnode)
+   {
+      float sum = bcData[0].inverseCC[node_idx];
+       sum += bcData[1].inverseCC[node_idx];
+      sum += bcData[2].inverseCC[node_idx];
+      sum += bcData[3].inverseCC[node_idx];
+      sum += bcData[4].inverseCC[node_idx];
+      sum += bcData[5].inverseCC[node_idx];
+      sum += bcData[6].inverseCC[node_idx];
+      sum += bcData[7].inverseCC[node_idx];
+      sum += bcData[8].inverseCC[node_idx];
+      sum += bcData[9].inverseCC[node_idx];
+      sum += bcData[10].inverseCC[node_idx];
+      sum += bcData[11].inverseCC[node_idx];
+      sum += bcData[12].inverseCC[node_idx];
+      sum += bcData[13].inverseCC[node_idx];
+      sum += bcData[14].inverseCC[node_idx];
+      sum += bcData[15].inverseCC[node_idx];
+      sum += bcData[16].inverseCC[node_idx];
+      sum += bcData[17].inverseCC[node_idx];
+      sum += bcData[18].inverseCC[node_idx];
+      sum += bcData[19].inverseCC[node_idx];
+      sum += bcData[20].inverseCC[node_idx];
+      sum += bcData[21].inverseCC[node_idx];
+      sum += bcData[22].inverseCC[node_idx];
+      sum += bcData[23].inverseCC[node_idx];
+      sum += bcData[24].inverseCC[node_idx];
+      sum += bcData[25].inverseCC[node_idx];
+      sum += bcData[26].inverseCC[node_idx];
+      sum += bcData[27].inverseCC[node_idx];
+      sum += bcData[28].inverseCC[node_idx];
+      sum += bcData[29].inverseCC[node_idx];
+      bcData[0].inverseCC[node_idx] = sum * 0.5f;
+   }
+}
 void gpuComputeBCOpt(const cuGraph * pGraph, cuBC * pBCData)
 {
    // init bc data for each block
@@ -346,7 +393,7 @@ void gpuComputeBCOpt(const cuGraph * pGraph, cuBC * pBCData)
 
    int num_blocks = (pBCData->nnode + BLOCK_SIZE-1)/BLOCK_SIZE;
    cuda_sumBC_block<<<num_blocks, BLOCK_SIZE>>>();
-
+   cuda_sumCC_block<<<num_blocks, BLOCK_SIZE>>>();
    printf("Kernel time: %f (ms)\n", endTimer(&kernel_timer));
 
    checkCudaErrors(cudaFree(srcs.nodes));
