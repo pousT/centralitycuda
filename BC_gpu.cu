@@ -238,7 +238,7 @@ __global__ void cuda_computeBC_block(const cuGraph graph,
          {
              if (bcData.distance[node_idx] == distance) // n_id is in frontier
              {
-                 in_cc += 1.0f/distance;
+                 float in_cc = 1.0f/distance;
                  // get neighbor indices (starting index and number of indices)
                  int nb_cur = graph.index_list[node_idx];
                  int nb_end = graph.index_list[node_idx+1];
